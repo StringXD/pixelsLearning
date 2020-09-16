@@ -459,7 +459,7 @@ function [Cj] = spike_crossx_jitter(X,Y,binsize,nbins)
   Xlowerbound = X(1) + minLag;
   Xupperbound = X(end) - minLag;
   Y(Y < Xlowerbound | Y > Xupperbound) = NaN;
-  if ~any(~isnan(Y),'all')
+  if ~any(~isnan(Y(:)))
     Cj = zeros(nbins-1,1000);
     return;
   end
@@ -468,7 +468,7 @@ function [Cj] = spike_crossx_jitter(X,Y,binsize,nbins)
   Ylowerbound = repmat(Y(:,1)',m,1) + minLag;
   Yupperbound = repmat(Y(:,end)',m,1) - minLag;
   X(X < Ylowerbound | X > Yupperbound) = NaN;
-  if ~any(~isnan(X),'all')
+  if ~any(~isnan(X(:)))
     Cj = zeros(nbins-1,1000);
     return;
   end
