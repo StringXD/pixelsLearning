@@ -4,7 +4,7 @@
 addpath('E:\matlab scripts\lickAnalysis');
 dataSumFolder = 'E:\prJ\neuropixels\learning\dataSumLN';
 serFolder = 'E:\prJ\neuropixels\learning\sync\Learning';
-flEvt=dir([dataSumFolder '\*\*imec0*\events.hdf5']);
+flEvt=dir([dataSumFolder '\*\*\events.hdf5']);
 for oneEvt=flEvt'
     rootpath=oneEvt.folder;
     trials = h5read(fullfile(rootpath,'events.hdf5'),'/trials');
@@ -19,6 +19,8 @@ for oneEvt=flEvt'
     if ~isempty(serFl)
         serData = ser2mat(fullfile(serFl(1).folder,serFl(1).name));
     else
+        disp('Can not find serial file!')
+        disp(['Check path: ',rootpath])
         continue;
     end
     % serData as ground
@@ -66,6 +68,7 @@ for oneEvt=flEvt'
             else
                 uncertainTrials = [uncertainTrials;n];
                 disp('Uncertain Delay')
+                disp(['Check path: ',rootpath])
                 %pause;
             end
         end
@@ -76,6 +79,7 @@ for oneEvt=flEvt'
     errList = [];
     if length(serTable) == length(trials) && sum(abs(trials(7:8,:) - serTable(3:4,:)),'all') == 0
         trials(5:6,:) = serTable(1:2,:);
+        trials(end+1,:) = ones(1,length(trials));
     elseif length(serTable) < length(trials)
         offset = 0;
         while length(serTable) + offset <= length(trials)
@@ -97,14 +101,17 @@ for oneEvt=flEvt'
                 offset = errList(I,1);
                 [~,tid] = find(trials(7:8,1+offset:length(serTable)+offset) - serTable(3:4,:));
                 trials(:,tid) = [];
-            elseif contains(rootpath,'M81_6_learning_20200909_g0_imec0_cleaned')
+            elseif contains(rootpath,'M81_6_learning_20200909_g0')
                 continue;
             else
                 disp('Uncertain Events')
                 pause;
             end
         end
+        trials(end+1,:) = ones(1,length(trials)); 
     elseif length(serTable) > length(trials)
+        disp('Fewer trials than ser!')
+        disp(['Check path: ',rootpath])
         offset = 0;
         hastrim = 0;
         while length(trials) + offset <= length(serTable) && flag == 0
@@ -112,16 +119,26 @@ for oneEvt=flEvt'
             errList = [errList;offset,err];
             if err == 0
                 flag = 1;
+                % make sure there are spikes in missing trials or discard
+                % them
+                spikeTS = readNPY(fullfile(rootpath,'spike_times.npy'));
                 % fill the blank data
                 % linear regression: t(pixel_t2) - t(pixel_t1) = 30[t(ser_t2) - t(ser_t1)]
                 tl = length(trials);
                 trials = [zeros(size(trials,1),offset),trials,zeros(size(trials,1),length(serTable)-tl-offset)];
                 regressTimeS1 = trials(1,1) + 30*(serTime(1,:) - serTime(1,offset+1));
                 regressTimeS2 = trials(2,1) + 30*(serTime(2,:) - serTime(2,offset+1));
+                trials(end+1,:) = logical(trials(1,:));
                 trials(1,:) = regressTimeS1.* ~trials(1,:) + trials(1,:);
                 trials(2,:) = regressTimeS2.* ~trials(2,:) + trials(2,:);
                 trials(3:4,:) = round(trials(1:2,:)/30000);
                 trials(5:8,:) = serTable;
+                % To avoid spikeGLX recording missing
+                missProneMask = zeros(1,length(trials));
+                for tidx = 1:length(trials)
+                    missProneMask(tidx) = length(spikeTS(spikeTS>trials(1,tidx) & spikeTS <= trials(2,tidx))) < 500;
+                end
+                trials = trials(:,~missProneMask);
                 break;
             end
             offset = offset + 1;
@@ -152,11 +169,16 @@ end
 disp('Done!')
     
 %% peek events
-fl=dir('E:\prJ\neuropixels\learning\dataSumLN\*\*imec0*\eventsRescue.hdf5');
-eventList = cell(0,2);
+fl=dir('E:\prJ\neuropixels\learning\dataSumLN\*\*\events.hdf5');
+eventList = cell(0,3);
 for onefile=fl'
     rootpath=onefile.folder;
-    trials = h5read(fullfile(rootpath,'eventsRescue.hdf5'),'/trials');
+    trials = h5read(fullfile(rootpath,'events.hdf5'),'/trials');
     eventList{end+1,1} = rootpath;
     eventList{end,2} = trials;
+    try
+        trials1 = h5read(fullfile(rootpath,'eventsRescue.hdf5'),'/trials');
+        eventList{end,3} = trials1;
+    catch
+    end
 end
