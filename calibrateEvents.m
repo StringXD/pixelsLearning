@@ -103,6 +103,8 @@ for oneEvt=flEvt'
                 trials(:,tid) = [];
             elseif contains(rootpath,'M81_6_learning_20200909_g0')
                 continue;
+            elseif contains(rootpath,'M79_4_learning_20200903_g1')
+                continue;
             else
                 disp('Uncertain Events')
                 pause;
