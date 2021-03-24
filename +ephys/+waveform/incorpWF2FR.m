@@ -16,8 +16,13 @@ for onefile=fl'
         keyboard()
         continue
     end
+    % per second firing rate
+    FR_All_1000 = mat2cell(FR_All,ones(1,size(FR_All,1)),4*ones(1,size(FR_All,2)/4),ones(1,size(FR_All,3)));
+    FR_All_1000 = cellfun(@mean,FR_All_1000);
     h5create(FR_File,'/FR_All',size(FR_All),'Datatype','double')
     h5write(FR_File,'/FR_All',FR_All)
+    h5create(FR_File,'/FR_All_1000',size(FR_All_1000),'Datatype','double')
+    h5write(FR_File,'/FR_All_1000',FR_All_1000)
     h5create(FR_File,'/Trials',size(Trials),'Datatype','double')
     h5write(FR_File,'/Trials',Trials)
     h5create(FR_File,'/SU_id',size(SU_id),'Datatype','double')
