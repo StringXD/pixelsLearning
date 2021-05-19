@@ -5,7 +5,7 @@ function plot_file_data(ftick,opt)
 arguments
     ftick (1,1) double {mustBeMember(ftick,[300,600,3000,6000])}=600;
     opt.prefix (1,:) char ='0511';
-    opt.suffix (1,:) char ='delay';
+    opt.suffix (1,:) char ='ITI';
     opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}='4n'
 end
 [stats,~]=bz.hist.util.get_stp_stats(ftick,'prefix',opt.prefix,'suffix',opt.suffix,'type',opt.type);

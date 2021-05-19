@@ -3,7 +3,7 @@ arguments
     ftick (1,1) double {mustBeMember(ftick,[300,600,3000,6000])}
     opt.prefix (1,:) char
     opt.suffix (1,:) char
-    opt.type (1,:) char {mustBeMember(opt.type,{'neupix','AIOPTO'})}='neupix'
+    opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}
 end
 if ~isempty(opt.suffix) && ~startsWith(opt.suffix,'_'), opt.suffix=['_',opt.suffix];end
 persistent stats_ ftick_ memtypes_ prefix_ suffix_ type_
@@ -13,12 +13,13 @@ if isempty(stats_) || ftick~=ftick_ || ~strcmp(opt.prefix,prefix_) || ~strcmp(op
     disp('Updating STP stats from files');
     ftick_=ftick;
     fl=struct();
-    fl.congru=dir(fullfile('bzdata',sprintf('%s_stp_congru_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
-    fl.incongru=dir(fullfile('bzdata',sprintf('%s_stp_incongru_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
-    fl.nonmem=dir(fullfile('bzdata',sprintf('%s_stp_non-mem_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
+    fl.congru=dir(fullfile('stpdata',sprintf('%s_stp_congru_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
+    fl.incongru=dir(fullfile('stpdata',sprintf('%s_stp_incongru_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
+    fl.nonmem=dir(fullfile('stpdata',sprintf('%s_stp_non-mem_*%d%s.mat',opt.prefix,ftick,opt.suffix)));
     memtypes=convertCharsToStrings(fieldnames(fl))';
+    %save('stpsum.mat','fl','memtypes','-v7.3');
     
-    statfields=["fc_eff","fc_prob","postspk","skip","sess_suids"];
+    statfields=["postspk","skip","sess_suids"];
     stats=struct();
 
     for memtype=memtypes
@@ -27,7 +28,14 @@ if isempty(stats_) || ftick~=ftick_ || ~strcmp(opt.prefix,prefix_) || ~strcmp(op
         stats.(memtype).sess=[];
         for fidx=1:size(fl.(memtype))
             fstr=load(fullfile(fl.(memtype)(fidx).folder,fl.(memtype)(fidx).name));
-            for sf=statfields, stats.(memtype).(sf)=[stats.(memtype).(sf);fstr.(sf)]; end
+            for sf=statfields
+                if strcmp(sf,'skip')
+                    fstr.(sf) = (fstr.(sf)(1:length(fstr.(sf))))';
+                    stats.(memtype).(sf)=[stats.(memtype).(sf);fstr.(sf)];
+                else
+                    stats.(memtype).(sf)=[stats.(memtype).(sf);fstr.(sf)]; 
+                end
+            end
             stats.(memtype).sess=[stats.(memtype).sess;repmat(fstr.sess,size(fstr.sess_suids,1),1)];
         end
         stats.(memtype).reg=bz.hist.tag_hist_reg(stats.(memtype),'type',opt.type);

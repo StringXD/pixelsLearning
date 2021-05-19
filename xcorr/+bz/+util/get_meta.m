@@ -3,20 +3,20 @@ arguments
     sig_id (:,2) int32
     pair_id_one_dir (:,2) int32
     fpath (1,:) char
-    opt.type (1,:) char {mustBeMember(opt.type,{'neupix','AIOPTO'})}='neupix'
+    opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}
 end
 
-idmap=load(fullfile('K:','code','align','reg_ccfid_map.mat'));
+idmap=load('~/data/learning/reg_ccfid_map.mat');
 meta_str=ephys.util.load_meta('type',opt.type);
 reg_map=containers.Map('KeyType','int32','ValueType','any'); %reg_map(su_id)=reg
 % wrsp_map=containers.Map('KeyType','int32','ValueType','any'); 
 % selec_map=containers.Map('KeyType','int32','ValueType','any');
 mem_type_map=containers.Map('KeyType','int32','ValueType','int32');
 % pc_stem=replace(regexp(fpath,'(?<=SPKINFO/).*$','match','once'),'/','\');
-sess_idx=find(startsWith(meta_str.allpath,fpath));
+sess_idx=find(contains(meta_str.allpath,replace(fpath,'/','\')));
 for suidx=reshape(sess_idx,1,[])
     suid=meta_str.allcid(suidx);
-    acrontree=meta_str.reg_tree(:,suidx);
+    acrontree=meta_str.reg_tree(suidx,:);
     ccfid=nan(1,6);
     for i=1:numel(acrontree), if isempty(acrontree{i}), ccfid(i)=0;else, ccfid(i)=idmap.reg2ccfid(acrontree{i});end;end
     reg_map(suid)=int32(ccfid);

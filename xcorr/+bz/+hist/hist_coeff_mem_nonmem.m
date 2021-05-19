@@ -7,11 +7,11 @@ function hist_coeff_mem_nonmem(sess,mtype,opt)
 arguments
     sess (1,1) double {mustBeInteger,mustBePositive,mustBeNonempty}
     mtype (1,:) char {mustBeMember(mtype,{'congru','incongru','non-mem'})}
-    opt.prefix (1,:) char = '0331'
-    opt.tsbin_size (1,1) double = 600
-    opt.type (1,:) char {mustBeMember(opt.type,{'neupix','AIOPTO'})}='neupix'
+    opt.prefix (1,:) char = '0511'
+    opt.tsbin_size (1,1) double = 6000
+    opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}='2'
     opt.laser (1,:) char {mustBeMember(opt.laser,{'on','off','any'})} = 'any'
-    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} = 'any'
+    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} = 'ITI'
 end
 
 sig=bz.load_sig_pair('type',opt.type,'prefix',opt.prefix);
@@ -32,7 +32,7 @@ end
 idces=find(typesel);
 sess_suids=nan(dim,2);
 postspk=nan(dim,11); %incept+coefficients
-skip=false(dim);
+skip=false(dim,1);
 sidx=1;
 for i=reshape(idces,1,[])
     fprintf('%d of %d\n',sidx,dim);

@@ -2,17 +2,17 @@ function [spk_out,skip]=history_coeff(sessid,suid,opt)
 arguments
     sessid (1,1) int32
     suid (1,2) int32
-    opt.tsbin_size (1,1) double = 600
-    opt.type (1,:) char {mustBeMember(opt.type,{'neupix','AIOPTO'})}='neupix'
+    opt.tsbin_size (1,1) double 
+    opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}
     opt.laser (1,:) char {mustBeMember(opt.laser,{'on','off','any'})} = 'any'
-    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} = 'any'
+    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} 
 end
 persistent bitmask X
 if isempty(bitmask) || isempty(X)
     bitmask=2.^(0:9)';
     X=buildX();
 end
-if strcmp(opt.type,'neupix')
+if strcmp(opt.type,'4n') | strcmp(opt.type,'2')
     [spkID,spkTS,~,~,~]=ephys.getSPKID_TS(sessid,'epoch',opt.epoch);
     tspre=spkTS(spkID==suid(1));
     tspost=spkTS(spkID==suid(2));

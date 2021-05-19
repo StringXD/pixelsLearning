@@ -2,12 +2,12 @@
 function [sig_,pair_]=load_sig_pair(opt)
 arguments
     opt.pair (1,1) logical = false
-    opt.type (1,:) char {mustBeMember(opt.type,{'neupix','AIOPTO'})}='neupix'
-    opt.prefix (1,:) char = '0315'
+    opt.type (1,:) char {mustBeMember(opt.type,{'4n','2'})}
+    opt.prefix (1,:) char = '0511'
 end
 persistent sig pair type_
 if isempty(sig) || (opt.pair && isempty(pair)) || ~strcmp(opt.type,type_)
-    fl=dir(fullfile('bzdata',sprintf('%s_conn_w_reg_*.mat',opt.prefix)));
+    fl=dir(fullfile('xcorr_bz_2',sprintf('%s_conn_w_reg_*.mat',opt.prefix)));
     if size(fl,1)<9, return; end
     sig=struct(); % for significant connect
     sig.suid=cell(0); % cluster id assigned by kilosort, 2nd+ probe prefixed by probe#
@@ -29,7 +29,7 @@ if isempty(sig) || (opt.pair && isempty(pair)) || ~strcmp(opt.type,type_)
             sig.(fi{1}){fidx}=fstr.sig_meta.(fi{1});
             if opt.pair, pair.(fi{1}){fidx}=fstr.pair_meta.(fi{1}); end
         end
-        sig.sess{fidx}=repmat(ephys.path2sessid(fstr.pc_stem,'type',opt.type),size(fstr.sig_meta.suid,1),1);
+        sig.sess{fidx}=repmat(ephys.path2sessid(fstr.pc_stem,'type',opt.type)+31,size(fstr.sig_meta.suid,1),1);
         if opt.pair, pair.sess{fidx}=repmat(ephys.path2sessid(fstr.pc_stem),size(fstr.pair_meta.suid,1),1); end
     end
 

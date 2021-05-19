@@ -2,26 +2,26 @@ function [spkID_,spkTS_,trials_,SU_id_,folder_]=getSPKID_TS(fidx,opt)
 arguments
     fidx (1,1) double {mustBeInteger,mustBeGreaterThanOrEqual(fidx,1)}
     %TODO EPOCH
-    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} = 'any'
+    opt.epoch (1,:) char {mustBeMember(opt.epoch,{'delay','ITI','any'})} 
 end
 
 persistent spkID spkTS trials SU_id folder fidx_
 
 if isempty(fidx_) || fidx ~= fidx_
-    fl = dir('/home/xd/data/learning/*/*/*/spike_info.hdf5');
-    trials=h5read(fullfile(fl(fidx).folder,'FR_All.hdf5'),'/Trials');
-    SU_id=h5read(fullfile(fl(fidx).folder,'FR_All.hdf5'),'/SU_id');
+    fl = dir('/home/xd/data/learning/learning2tracks/*/*/spike_info.hdf5');
+    trials=h5read(fullfile(fl(fidx-31).folder,'FR_All.hdf5'),'/Trials');
+    SU_id=h5read(fullfile(fl(fidx-31).folder,'FR_All.hdf5'),'/SU_id');
     %     FR_All=h5read(fullfile(homedir,folder,'FR_All_1000.hdf5'),'/FR_All');
     spkID=[];spkTS=[];
     if length(trials)<40 || numel(SU_id)<2  % for learning, use all trials criteria
         trials=[];SU_id=[];return;
     end
     
-    cstr=h5info(fullfile(fl(fidx).folder,'spike_info.hdf5')); % probe for available probes
+    cstr=h5info(fullfile(fl(fidx-31).folder,'spike_info.hdf5')); % probe for available probes
     for prb=1:size(cstr.Groups,1) % concatenate same session data for cross probe function coupling
         prbName=cstr.Groups(prb).Name;
-        spkID=cat(1,spkID,h5read(fullfile(fl(fidx).folder,'spike_info.hdf5'),[prbName,'/clusters']));
-        spkTS=cat(1,spkTS,h5read(fullfile(fl(fidx).folder,'spike_info.hdf5'),[prbName,'/times']));
+        spkID=cat(1,spkID,h5read(fullfile(fl(fidx-31).folder,'spike_info.hdf5'),[prbName,'/clusters']));
+        spkTS=cat(1,spkTS,h5read(fullfile(fl(fidx-31).folder,'spike_info.hdf5'),[prbName,'/times']));
     end
     
     susel=ismember(spkID,SU_id); % data cleaning by FR and contam rate criteria %TODO optional waveform cleaning
